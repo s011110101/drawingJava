@@ -65,7 +65,7 @@ public class DrawingApplicationFrame extends JFrame
     private JFrame frame;
     private JComboBox<String> shapeComboBox;
     // Variables for drawPanel.
-    private JPanel drawPanel;
+    private DrawPanel drawPanel;
     private Color color1;
     private Color color2;
     
@@ -76,9 +76,6 @@ public class DrawingApplicationFrame extends JFrame
     private JPanel statusPanel;
     
     
-    
-    
-    
     // Constructor for DrawingApplicationFrame
     public DrawingApplicationFrame()
     {
@@ -87,7 +84,6 @@ public class DrawingApplicationFrame extends JFrame
         shapePanel = new JPanel();
         optionPanel = new JPanel();
         drawPanel = new DrawPanel();
-        
         
         // firstLine widgets
         shapeDesc = new JLabel("Shape: ");
@@ -166,6 +162,18 @@ public class DrawingApplicationFrame extends JFrame
                 }
             }
         });
+        undo.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                drawPanel.undoShape();
+            }
+        });
+        clear.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                drawPanel.clearShapes();
+            }
+        });
         
     }
 
@@ -194,7 +202,16 @@ public class DrawingApplicationFrame extends JFrame
                 shape.draw(g2d);
             }
         }
-
+        public void clearShapes(){
+            shapes.clear();
+            repaint();
+        }
+        public void undoShape(){
+            if (!shapes.isEmpty()){
+                shapes.remove(shapes.size()-1);
+            }
+            repaint();
+        }
 
         private class MouseHandler extends MouseAdapter implements MouseMotionListener
         {
@@ -211,28 +228,30 @@ public class DrawingApplicationFrame extends JFrame
                 //BasicStroke stroke = new BasicStroke((Integer)width.getValue(),BasicStroke.CAP_SQUARE, BasicStroke.JOIN_ROUND, (Integer)length.getValue(), gradient.isSelected(),  dash.isSelected());
                 BasicStroke stroke = new BasicStroke((Integer)width.getValue());
                 float[] dashLength = {(Integer)length.getValue()};
-
+                Paint paint = color1;
                 if (gradient.isSelected()){
-                    Paint paint = new GradientPaint(0, 0, color1, 50, 50, color2, true);
+                    paint = new GradientPaint(0, 0, color1, 50, 50, color2, true);
                 }
+                
      
                 if (dash.isSelected()){
                     stroke = new BasicStroke((Integer)width.getValue(), BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND, 10, dashLength, 0);
-                    } 
+                } 
                 else{
-                        stroke = new BasicStroke((Integer)width.getValue(), BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND);
-                    }
+                    stroke = new BasicStroke((Integer)width.getValue(), BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND);
+                }
 
                 if ("Line".equals(selectedShape)) {
-                    currentShape = new MyLine(startPoint, endPoint, color1, stroke);
-                    } 
+                    currentShape = new MyLine(startPoint, endPoint, paint, stroke);
+                } 
                 else if ("Oval".equals(selectedShape)) {
-                        currentShape = new MyOval(startPoint, endPoint, color1, stroke, fill.isSelected());
-                    } 
+                    currentShape = new MyOval(startPoint, endPoint, paint, stroke, fill.isSelected());
+                } 
                 else if ("Rectangle".equals(selectedShape)) {
-                        currentShape = new MyRectangle(startPoint, endPoint, color1, stroke, fill.isSelected());
-                    }
+                    currentShape = new MyRectangle(startPoint, endPoint, paint, stroke, fill.isSelected());
                 }
+            }
+                
             
             
             public void mouseReleased(MouseEvent event)
@@ -262,6 +281,5 @@ public class DrawingApplicationFrame extends JFrame
                 statusLabel.setText("(" + event.getX() + ", " + event.getY() + ")");
             }
         }
-
     }
 }
